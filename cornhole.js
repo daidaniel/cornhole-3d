@@ -51,23 +51,12 @@ export class Cornhole extends Scene {
         // Bean Bag
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
 
-        let x_init_pos = 0;
-        let y_init_pos = 10;
-        let z_init_pos = 0;
+        let init_pos = vec3(0, 10, 0);
+        let vel = vec3(10, 20, -10);
+        let acc = vec3(0, -32.17, 0); // ft/s^2
+        let pos = init_pos.plus(vel.times(t)).plus(acc.times(.5 * t * t));
 
-        let x_vel = 10;
-        let y_vel = 20;
-        let z_vel = -10;
-
-        let x_acc = 0;
-        let y_acc = -32.17; // ft/s^2
-        let z_acc = 0;
-
-        let x_pos = x_init_pos + x_vel * t + .5 * x_acc * t * t;
-        let y_pos = y_init_pos + y_vel * t + .5 * y_acc * t * t;
-        let z_pos = z_init_pos + z_vel * t + .5 * z_acc * t * t;
-
-        let beanbag_transform = Mat4.identity().times(Mat4.translation(x_pos, y_pos, z_pos));
+        let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2]));
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
     }
