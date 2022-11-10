@@ -50,7 +50,6 @@ export class Cornhole extends Scene {
 
         // Bean Bag
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-
         let init_pos = vec3(0, 10, 0);
         let vel = vec3(10, 20, -10);
         let acc = vec3(0, -32.17, 0); // ft/s^2
@@ -59,5 +58,20 @@ export class Cornhole extends Scene {
         let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2]));
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
+
+        // Bean Bag Trajectory
+        let traj_show = true; // "throw" control should turn this off
+        let traj_color = color(1, 1, 1, 0);
+        if (traj_show) {
+            traj_color = color(1, 1, 1, 1);
+        }
+
+        for (let i = 0; i < 10; i += .05) {
+            let traj_pos = init_pos.plus(vel.times(i)).plus(acc.times(.5 * i * i));
+
+            let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
+                .times(Mat4.scale(.3, .3, .3));
+            this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.plastic.override({ color: traj_color }));
+        }
     }
 }
