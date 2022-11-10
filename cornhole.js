@@ -17,19 +17,29 @@ export class Cornhole extends Scene {
         this.shapes = {
             cube: new defs.Cube(),
             sphere: new defs.Subdivision_Sphere(4),
+            regular_2D_polygon: new defs.Regular_2D_Polygon(30,30)
         };
 
         // *** Materials
         this.materials = {
             plastic: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: hex_color("#ffffff") }),
+            wood: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .6, color: hex_color("#be8c41") }),
+            hole: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .6, color: color(1,0,0,1) })
         };
 
         this.starttime = 0.0;
         this.currenttime = 0.0;
     }
 
-    make_control_panel() {
+    make_control_panel(){
+        this.key_triggered_button("Increase X Velocity by 1", ["1"]);
+        this.key_triggered_button("Increase Y Velocity by 1", ["2"]);
+        this.key_triggered_button("Increase Z Velocity by 1", ["3"]);
+        this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
+        this.key_triggered_button("Bag Cam", ["Control", "2"], () => this.attached = () => this.bagCam);
         this.key_triggered_button("Shoot", ["c"], () => {
             this.starttime = this.currenttime;
         });
@@ -76,6 +86,7 @@ export class Cornhole extends Scene {
         let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2]));
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
+        this.bagCam = beanbag_transform;
 
         let xcollision = (Math.floor(pos[0]) <= cornhole_x + 1 && Math.floor(pos[0]) >= cornhole_x - 1);
         let ycollision = (pos[1] <= 0.5 && pos[1] >= 0);
@@ -99,5 +110,52 @@ export class Cornhole extends Scene {
                 .times(Mat4.scale(.3, .3, .3));
             this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.plastic.override({ color: traj_color }));
         }
+
+        // **BOARD**
+        let board_transform = Mat4.identity()
+        //Finding Board Position
+        board_transform = board_transform
+            .times(Mat4.translation(15.9,1,-16))
+            .times(Mat4.rotation(.8,0,1,0))
+            .times(Mat4.rotation(1.8,0,0,1))
+            .times(Mat4.translation(-1.3,1,0))
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+
+
+        //Adding extra cubes to finish board
+        board_transform = board_transform
+            .times(Mat4.translation(0,-2,0))
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+        board_transform = board_transform
+            .times(Mat4.translation(0,-2,0))
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+        board_transform = board_transform
+            .times(Mat4.translation(0,4,2))
+        this.shapes.cube.draw(context, program_state,board_transform, this.materials.wood)
+        board_transform = board_transform
+            .times(Mat4.translation(0,-2,0))
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+        board_transform = board_transform
+            .times(Mat4.translation(0,-2,0))
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+
+        //TARGET LOCATION
+        let target_transform = Mat4.identity()
+        target_transform = target_transform
+            .times(Mat4.translation(15.5,2,-17.5))
+            .times(Mat4.rotation(-5,-4,-.3,0))
+            .times(Mat4.translation(1.5,0,-1.02))
+            .times(Mat4.translation(6,4,.36))
+            .times(Mat4.translation(-5,-5,0))
+            .times(Mat4.scale(0.5,0.5,0.5))
+        this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
+
+        // CAM STUFF
+        this.bag = pos;
+        this.bagCam = Mat4.inverse(beanbag_transform.times(Mat4.translation(0, 0, 5)));
+        if (this.attached != undefined) {
+            program_state.camera_inverse = this.attached().map((x,i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
+        }
+
     }
 }
