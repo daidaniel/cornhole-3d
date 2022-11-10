@@ -53,7 +53,7 @@ export class Cornhole extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(0, -2, 0));
+            program_state.set_camera(Mat4.translation(-14, -10, -34));
         }
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         program_state.projection_transform = Mat4.perspective(
@@ -68,13 +68,6 @@ export class Cornhole extends Scene {
         let floor_color = color(.4, .8, .4, 1);
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
 
-        // Cornhole
-        let cornhole_color = color(0.6, 0.3, 0, 1);
-        let cornhole_x = 10 * Math.sin(t) + 15.5;
-        let cornhole_z = 10 * Math.sin(-1 * t) - 15.5
-        let cornhole_loc =  Mat4.identity().times(Mat4.translation(cornhole_x, 0.5, cornhole_z));
-        this.shapes.cube.draw(context, program_state, cornhole_loc, this.materials.plastic.override({color : cornhole_color}));
-
         // Bean Bag
         let init_pos = vec3(0, 10, 0);
         let vel = vec3(10, 20, -10);
@@ -87,14 +80,6 @@ export class Cornhole extends Scene {
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
         this.bagCam = beanbag_transform;
-
-        let xcollision = (Math.floor(pos[0]) <= cornhole_x + 1 && Math.floor(pos[0]) >= cornhole_x - 1);
-        let ycollision = (pos[1] <= 0.5 && pos[1] >= 0);
-        let zcollision = (Math.floor(pos[2]) <= cornhole_z + 1 && Math.floor(pos[2]) >= cornhole_z - 1);
-
-        if (xcollision && ycollision && zcollision) {
-            console.log(1);
-        }
 
         // Bean Bag Trajectory
         let traj_show = true; // "throw" control should turn this off
@@ -113,9 +98,11 @@ export class Cornhole extends Scene {
 
         // **BOARD**
         let board_transform = Mat4.identity()
+        let cornhole_x = 10 * Math.sin(t) + 14.6;
+        let cornhole_z = 10 * Math.sin(-1 * t) - 16;
         //Finding Board Position
         board_transform = board_transform
-            .times(Mat4.translation(15.9,1,-16))
+            .times(Mat4.translation(cornhole_x,1,cornhole_z))
             .times(Mat4.rotation(.8,0,1,0))
             .times(Mat4.rotation(1.8,0,0,1))
             .times(Mat4.translation(-1.3,1,0))
@@ -141,13 +128,11 @@ export class Cornhole extends Scene {
 
         //TARGET LOCATION
         let target_transform = Mat4.identity()
+        let target_x = 10 * Math.sin(t) + 17;
+        let target_z = 10 * Math.sin(-1 * t) - 17
         target_transform = target_transform
-            .times(Mat4.translation(15.5,2,-17.5))
-            .times(Mat4.rotation(-5,-4,-.3,0))
-            .times(Mat4.translation(1.5,0,-1.02))
-            .times(Mat4.translation(6,4,.36))
-            .times(Mat4.translation(-5,-5,0))
-            .times(Mat4.scale(0.5,0.5,0.5))
+            .times(Mat4.translation(target_x,1.58,target_z))
+            .times(Mat4.rotation(-5,-8,-2,0))
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
         // CAM STUFF
@@ -157,5 +142,14 @@ export class Cornhole extends Scene {
             program_state.camera_inverse = this.attached().map((x,i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
         }
 
+
+        // Scoring
+        let xcollision = (Math.floor(pos[0]) <= target_x + 1.5 && Math.floor(pos[0]) >= target_x - 1.5);
+        let ycollision = (pos[1] <= 1.75 && pos[1] >= 1.25);
+        let zcollision = (Math.floor(pos[2]) <= target_z + 1.5 && Math.floor(pos[2]) >= target_z - 1.5);
+
+        if (xcollision && ycollision && zcollision) {
+            console.log(1);
+        }
     }
 }
