@@ -17,6 +17,7 @@ export class Cornhole extends Scene {
         this.shapes = {
             cube: new defs.Cube(),
             sphere: new defs.Subdivision_Sphere(4),
+            regular_2D_polygon: new defs.Regular_2D_Polygon(30,30)
         };
 
         // *** Materials
@@ -24,7 +25,9 @@ export class Cornhole extends Scene {
             plastic: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: hex_color("#ffffff") }),
             wood: new Material(new defs.Phong_Shader(),
-                { ambient: .4, diffusivity: .6, color: hex_color("#be8c41") })
+                { ambient: .4, diffusivity: .6, color: hex_color("#be8c41") }),
+            hole: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .6, color: color(1,0,0,1) })
         };
     }
 
@@ -113,6 +116,17 @@ export class Cornhole extends Scene {
         board_transform = board_transform
             .times(Mat4.translation(0,-2,0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+
+        //TARGET LOCATION
+        let target_transform = Mat4.identity()
+        target_transform = target_transform
+            .times(Mat4.translation(15.5,2,-17.5))
+            .times(Mat4.rotation(-5,-4,-.3,0))
+            .times(Mat4.translation(1.5,0,-1.02))
+            .times(Mat4.translation(6,4,.36))
+            .times(Mat4.translation(-5,-5,0))
+            .times(Mat4.scale(0.5,0.5,0.5))
+        this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
         // CAM STUFF
         this.bag = pos;
