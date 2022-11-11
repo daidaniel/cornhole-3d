@@ -17,7 +17,7 @@ export class Cornhole extends Scene {
         this.shapes = {
             cube: new defs.Cube(),
             sphere: new defs.Subdivision_Sphere(4),
-            regular_2D_polygon: new defs.Regular_2D_Polygon(30,30)
+            regular_2D_polygon: new defs.Regular_2D_Polygon(30, 30)
         };
 
         // *** Materials
@@ -27,17 +27,23 @@ export class Cornhole extends Scene {
             wood: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: hex_color("#be8c41") }),
             hole: new Material(new defs.Phong_Shader(),
-                { ambient: .4, diffusivity: .6, color: color(1,0,0,1) })
+                { ambient: .4, diffusivity: .6, color: color(1, 0, 0, 1) })
         };
 
         this.starttime = 0.0;
         this.currenttime = 0.0;
+        this.init_pos = vec3(0, 10, 0);
+        this.vel = vec3(0, 20, -10);
+        this.acc = vec3(0, -32.17, 0); // ft/s^2
     }
 
-    make_control_panel(){
-        this.key_triggered_button("Increase X Velocity by 1", ["1"]);
-        this.key_triggered_button("Increase Y Velocity by 1", ["2"]);
-        this.key_triggered_button("Increase Z Velocity by 1", ["3"]);
+    make_control_panel() {
+        this.key_triggered_button("Aim Left", ["j"], () => { this.vel[0]--; });
+        this.key_triggered_button("Aim Right", ["l"], () => { this.vel[0]++; });
+        this.key_triggered_button("Aim Up", ["i"], () => { this.vel[1]++; });
+        this.key_triggered_button("Aim Down", ["k"], () => { this.vel[1]--; });
+        this.key_triggered_button("Aim Further", ["u"], () => { this.vel[2]--; });
+        this.key_triggered_button("Aim Closer", ["o"], () => { this.vel[2]++; });
         this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
         this.key_triggered_button("Bag Cam", ["Control", "2"], () => this.attached = () => this.bagCam);
         this.key_triggered_button("Shoot", ["c"], () => {
@@ -53,7 +59,7 @@ export class Cornhole extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(-14, -10, -34));
+            program_state.set_camera(Mat4.translation(0, -9, -19));
         }
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         program_state.projection_transform = Mat4.perspective(
@@ -69,12 +75,9 @@ export class Cornhole extends Scene {
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
 
         // Bean Bag
-        let init_pos = vec3(0, 10, 0);
-        let vel = vec3(10, 20, -10);
-        let acc = vec3(0, -32.17, 0); // ft/s^2
         let newt = t - this.starttime;
         this.currenttime = t;
-        let pos = init_pos.plus(vel.times(newt)).plus(acc.times(.5 * newt * newt));
+        let pos = this.init_pos.plus(this.vel.times(newt)).plus(this.acc.times(.5 * newt * newt));
 
         let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2]));
         let beanbag_color = color(.8, .4, .4, 1);
@@ -89,7 +92,7 @@ export class Cornhole extends Scene {
         }
 
         for (let i = 0; i < 10; i += .05) {
-            let traj_pos = init_pos.plus(vel.times(i)).plus(acc.times(.5 * i * i));
+            let traj_pos = this.init_pos.plus(this.vel.times(i)).plus(this.acc.times(.5 * i * i));
 
             let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
                 .times(Mat4.scale(.3, .3, .3));
@@ -111,19 +114,19 @@ export class Cornhole extends Scene {
 
         //Adding extra cubes to finish board
         board_transform = board_transform
-            .times(Mat4.translation(0,-2,0))
+            .times(Mat4.translation(0, -2, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
         board_transform = board_transform
-            .times(Mat4.translation(0,-2,0))
+            .times(Mat4.translation(0, -2, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
         board_transform = board_transform
-            .times(Mat4.translation(0,4,2))
-        this.shapes.cube.draw(context, program_state,board_transform, this.materials.wood)
-        board_transform = board_transform
-            .times(Mat4.translation(0,-2,0))
+            .times(Mat4.translation(0, 4, 2))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
         board_transform = board_transform
-            .times(Mat4.translation(0,-2,0))
+            .times(Mat4.translation(0, -2, 0))
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+        board_transform = board_transform
+            .times(Mat4.translation(0, -2, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
 
         //TARGET LOCATION
@@ -139,7 +142,7 @@ export class Cornhole extends Scene {
         this.bag = pos;
         this.bagCam = Mat4.inverse(beanbag_transform.times(Mat4.translation(0, 0, 5)));
         if (this.attached != undefined) {
-            program_state.camera_inverse = this.attached().map((x,i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
+            program_state.camera_inverse = this.attached().map((x, i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
         }
 
 
