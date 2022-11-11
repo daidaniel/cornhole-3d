@@ -105,8 +105,8 @@ export class Cornhole extends Scene {
         let cornhole_z = 10 * Math.sin(-1 * t) - 16;
         //Finding Board Position
         board_transform = board_transform
-            .times(Mat4.translation(cornhole_x,1,cornhole_z))
-            .times(Mat4.rotation(.8,0,1,0))
+            .times(Mat4.translation(-1, 1,-15))
+            .times(Mat4.rotation(1.56,0,1,0))
             .times(Mat4.rotation(1.8,0,0,1))
             .times(Mat4.translation(-1.3,1,0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
@@ -134,8 +134,8 @@ export class Cornhole extends Scene {
         let target_x = 10 * Math.sin(t) + 17;
         let target_z = 10 * Math.sin(-1 * t) - 17
         target_transform = target_transform
-            .times(Mat4.translation(target_x,1.58,target_z))
-            .times(Mat4.rotation(-5,-8,-2,0))
+            .times(Mat4.translation(-0.15, 1.1,-16.5))
+            .times(Mat4.rotation(-1.8,-0.1,-0,0));
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
         // CAM STUFF
@@ -147,9 +147,13 @@ export class Cornhole extends Scene {
 
 
         // Scoring
-        let xcollision = (Math.floor(pos[0]) <= target_x + 1.5 && Math.floor(pos[0]) >= target_x - 1.5);
-        let ycollision = (pos[1] <= 1.75 && pos[1] >= 1.25);
-        let zcollision = (Math.floor(pos[2]) <= target_z + 1.5 && Math.floor(pos[2]) >= target_z - 1.5);
+        // let xcollision = (Math.floor(pos[0]) <= target_x + 1.5 && Math.floor(pos[0]) >= target_x - 1.5);
+        // let ycollision = (pos[1] <= 1.75 && pos[1] >= 1.25);
+        // let zcollision = (Math.floor(pos[2]) <= target_z + 1.5 && Math.floor(pos[2]) >= target_z - 1.5);
+
+        let xcollision = (Math.floor(pos[0]) <= 2 && Math.floor(pos[0]) >= -1);
+        let ycollision = (pos[1] <= 1.4 && pos[1] >= 0.8);
+        let zcollision = (Math.floor(pos[2]) <= -15.5 && Math.floor(pos[2]) >= -17.5);
 
         if (xcollision && ycollision && zcollision) {
             console.log(1);
