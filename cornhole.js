@@ -27,20 +27,24 @@ export class Cornhole extends Scene {
             wood: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: hex_color("#be8c41") }),
             hole: new Material(new defs.Phong_Shader(),
-                { ambient: .4, diffusivity: .6, color: color(1, 0, 0, 1) })
+                { ambient: .4, diffusivity: .6, color: color(1, 0, 0, 1) }),
+            traj: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .6, color: color(1, 1, 1, .1) }),
         };
 
-        this.starttime = 0.0;
-        this.currenttime = 0.0;
+        this.start_time = 0.0;
+        this.curr_time = 0.0;
         this.init_pos = vec3(0, 10, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
+        this.angle_change = 0;
         this.angle = 0;
         this.power = 20;
+        this.ready = true;
     }
 
     make_control_panel() {
-        this.key_triggered_button("Aim Left", ["ArrowLeft"], () => { this.angle -= 0.05; });
-        this.key_triggered_button("Aim Right", ["ArrowRight"], () => { this.angle += 0.05; });
+        this.key_triggered_button("Aim Left", ["ArrowLeft"], () => this.angle_change = -.005, undefined, () => this.angle_change = 0);
+        this.key_triggered_button("Aim Right", ["ArrowRight"], () => this.angle_change = .005, undefined, () => this.angle_change = 0);
         this.new_line();
         this.key_triggered_button("More Power", ["ArrowUp"], () => { this.power += 5; });
         this.key_triggered_button("Less Power", ["ArrowDown"], () => { if (this.power > 0) this.power -= 5; });
@@ -48,7 +52,10 @@ export class Cornhole extends Scene {
         this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
         this.key_triggered_button("Bag Cam", ["Control", "2"], () => this.attached = () => this.bagCam);
         this.key_triggered_button("Shoot", ["c"], () => {
-            this.starttime = this.currenttime;
+            if (this.ready) {
+                this.ready = false;
+                this.start_time = this.curr_time;
+            }
         });
     }
 
@@ -76,31 +83,19 @@ export class Cornhole extends Scene {
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
 
         // Bean Bag
-        let newt = t - this.starttime;
-        this.currenttime = t;
+        let newt = t - this.start_time;
+        this.curr_time = t;
 
+        if (this.ready) this.angle += this.angle_change;
         let vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
         let pos = this.init_pos.plus(vel.times(newt)).plus(this.acc.times(.5 * newt * newt));
+
+        if (pos[1] < 0) this.ready = true; // TEMPORARY CONDITION
 
         let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2]));
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
         this.bagCam = beanbag_transform;
-
-        // Bean Bag Trajectory
-        let traj_show = true; // "throw" control should turn this off
-        let traj_color = color(1, 1, 1, 0);
-        if (traj_show) {
-            traj_color = color(1, 1, 1, 1);
-        }
-
-        for (let i = 0; i < 10; i += .05) {
-            let traj_pos = this.init_pos.plus(vel.times(i)).plus(this.acc.times(.5 * i * i));
-
-            let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
-                .times(Mat4.scale(.3, .3, .3));
-            this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.plastic.override({ color: traj_color }));
-        }
 
         // **BOARD**
         let board_transform = Mat4.identity()
@@ -160,6 +155,15 @@ export class Cornhole extends Scene {
 
         if (xcollision && ycollision && zcollision) {
             console.log(1);
+        }
+
+        // Bean Bag Trajectory
+        for (let i = 0; i < 10; i += .07) {
+            let traj_pos = this.init_pos.plus(vel.times(i)).plus(this.acc.times(.5 * i * i));
+
+            let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
+                .times(Mat4.scale(.3, .3, .3));
+            this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.traj);
         }
     }
 }
