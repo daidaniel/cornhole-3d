@@ -33,17 +33,18 @@ export class Cornhole extends Scene {
         this.starttime = 0.0;
         this.currenttime = 0.0;
         this.init_pos = vec3(0, 10, 0);
-        this.vel = vec3(0, 20, -10);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
+        this.angle = 0;
+        this.power = 20;
     }
 
     make_control_panel() {
-        this.key_triggered_button("Aim Left", ["j"], () => { this.vel[0]--; });
-        this.key_triggered_button("Aim Right", ["l"], () => { this.vel[0]++; });
-        this.key_triggered_button("Aim Up", ["i"], () => { this.vel[1]++; });
-        this.key_triggered_button("Aim Down", ["k"], () => { this.vel[1]--; });
-        this.key_triggered_button("Aim Further", ["u"], () => { this.vel[2]--; });
-        this.key_triggered_button("Aim Closer", ["o"], () => { this.vel[2]++; });
+        this.key_triggered_button("Aim Left", ["ArrowLeft"], () => { this.angle -= 0.05; });
+        this.key_triggered_button("Aim Right", ["ArrowRight"], () => { this.angle += 0.05; });
+        this.new_line();
+        this.key_triggered_button("More Power", ["ArrowUp"], () => { this.power += 5; });
+        this.key_triggered_button("Less Power", ["ArrowDown"], () => { if (this.power > 0) this.power -= 5; });
+        this.new_line();
         this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
         this.key_triggered_button("Bag Cam", ["Control", "2"], () => this.attached = () => this.bagCam);
         this.key_triggered_button("Shoot", ["c"], () => {
@@ -59,7 +60,7 @@ export class Cornhole extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.translation(0, -9, -19));
+            program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -10, -20)).times(Mat4.rotation(Math.PI / 8, 1, 0, 0)));
         }
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         program_state.projection_transform = Mat4.perspective(
@@ -77,7 +78,9 @@ export class Cornhole extends Scene {
         // Bean Bag
         let newt = t - this.starttime;
         this.currenttime = t;
-        let pos = this.init_pos.plus(this.vel.times(newt)).plus(this.acc.times(.5 * newt * newt));
+
+        let vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
+        let pos = this.init_pos.plus(vel.times(newt)).plus(this.acc.times(.5 * newt * newt));
 
         let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2]));
         let beanbag_color = color(.8, .4, .4, 1);
@@ -92,7 +95,7 @@ export class Cornhole extends Scene {
         }
 
         for (let i = 0; i < 10; i += .05) {
-            let traj_pos = this.init_pos.plus(this.vel.times(i)).plus(this.acc.times(.5 * i * i));
+            let traj_pos = this.init_pos.plus(vel.times(i)).plus(this.acc.times(.5 * i * i));
 
             let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
                 .times(Mat4.scale(.3, .3, .3));
@@ -105,10 +108,10 @@ export class Cornhole extends Scene {
         let cornhole_z = 10 * Math.sin(-1 * t) - 16;
         //Finding Board Position
         board_transform = board_transform
-            .times(Mat4.translation(-1, 1,-15))
-            .times(Mat4.rotation(1.56,0,1,0))
-            .times(Mat4.rotation(1.8,0,0,1))
-            .times(Mat4.translation(-1.3,1,0))
+            .times(Mat4.translation(-1, 1, -15))
+            .times(Mat4.rotation(1.56, 0, 1, 0))
+            .times(Mat4.rotation(1.8, 0, 0, 1))
+            .times(Mat4.translation(-1.3, 1, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
 
 
@@ -134,8 +137,8 @@ export class Cornhole extends Scene {
         let target_x = 10 * Math.sin(t) + 17;
         let target_z = 10 * Math.sin(-1 * t) - 17
         target_transform = target_transform
-            .times(Mat4.translation(-0.15, 1.1,-16.5))
-            .times(Mat4.rotation(-1.8,-0.1,-0,0));
+            .times(Mat4.translation(-0.15, 1.1, -16.5))
+            .times(Mat4.rotation(-1.8, -0.1, -0, 0));
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
         // CAM STUFF
