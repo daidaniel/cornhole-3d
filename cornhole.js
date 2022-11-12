@@ -38,10 +38,10 @@ export class Cornhole extends Scene {
 
         this.angle = 0;
         this.angle_change = 0;
-        this.power = 20;
+        this.power = 25;
         this.power_change = 0;
 
-        this.init_pos = vec3(0, 10, 0);
+        this.init_pos = vec3(0, 5, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
     }
 
@@ -70,7 +70,7 @@ export class Cornhole extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -10, -20)).times(Mat4.rotation(Math.PI / 8, 1, 0, 0)));
+            program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -7, -10)).times(Mat4.rotation(Math.PI / 10, 1, 0, 0)));
         }
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         program_state.projection_transform = Mat4.perspective(
@@ -98,7 +98,7 @@ export class Cornhole extends Scene {
 
         if (pos[1] < 0) this.ready = true; // TEMPORARY CONDITION
 
-        let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2]));
+        let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2])).times(Mat4.scale(.8, .8, .8));
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
         this.bagCam = beanbag_transform;
@@ -164,11 +164,11 @@ export class Cornhole extends Scene {
         }
 
         // Bean Bag Trajectory
-        for (let i = 0; i < 10; i += .07) {
+        for (let i = 0; i < 10; i += .06) {
             let traj_pos = this.init_pos.plus(vel.times(i)).plus(this.acc.times(.5 * i * i));
 
             let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
-                .times(Mat4.scale(.3, .3, .3));
+                .times(Mat4.scale(.2, .2, .2));
             this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.traj);
         }
     }
