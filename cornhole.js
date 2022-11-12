@@ -52,9 +52,9 @@ export class Cornhole extends Scene {
         this.key_triggered_button("More Power", ["ArrowUp"], () => this.power_change = .1, undefined, () => this.power_change = 0);
         this.key_triggered_button("Less Power", ["ArrowDown"], () => this.power_change = -.1, undefined, () => this.power_change = 0);
         this.new_line();
-        this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
+        // this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
         this.key_triggered_button("Bag Cam", ["Control", "2"], () => this.attached = () => this.bagCam);
-        this.key_triggered_button("Shoot", ["c"], () => {
+        this.key_triggered_button("Throw", ["c"], () => {
             if (this.ready) {
                 this.ready = false;
                 this.start_time = this.curr_time;
