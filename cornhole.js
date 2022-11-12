@@ -32,22 +32,25 @@ export class Cornhole extends Scene {
                 { ambient: .4, diffusivity: .6, color: color(1, 1, 1, .1) }),
         };
 
-        this.start_time = 0.0;
-        this.curr_time = 0.0;
+        this.start_time = 0;
+        this.curr_time = 0;
+        this.ready = true;
+
+        this.angle = 0;
+        this.angle_change = 0;
+        this.power = 20;
+        this.power_change = 0;
+
         this.init_pos = vec3(0, 10, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
-        this.angle_change = 0;
-        this.angle = 0;
-        this.power = 20;
-        this.ready = true;
     }
 
     make_control_panel() {
         this.key_triggered_button("Aim Left", ["ArrowLeft"], () => this.angle_change = -.005, undefined, () => this.angle_change = 0);
         this.key_triggered_button("Aim Right", ["ArrowRight"], () => this.angle_change = .005, undefined, () => this.angle_change = 0);
         this.new_line();
-        this.key_triggered_button("More Power", ["ArrowUp"], () => { this.power += 5; });
-        this.key_triggered_button("Less Power", ["ArrowDown"], () => { if (this.power > 0) this.power -= 5; });
+        this.key_triggered_button("More Power", ["ArrowUp"], () => this.power_change = .1, undefined, () => this.power_change = 0);
+        this.key_triggered_button("Less Power", ["ArrowDown"], () => this.power_change = -.1, undefined, () => this.power_change = 0);
         this.new_line();
         this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
         this.key_triggered_button("Bag Cam", ["Control", "2"], () => this.attached = () => this.bagCam);
@@ -86,7 +89,10 @@ export class Cornhole extends Scene {
         let newt = t - this.start_time;
         this.curr_time = t;
 
-        if (this.ready) this.angle += this.angle_change;
+        if (this.ready) {
+            this.angle += this.angle_change;
+            this.power += this.power_change;
+        }
         let vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
         let pos = this.init_pos.plus(vel.times(newt)).plus(this.acc.times(.5 * newt * newt));
 
