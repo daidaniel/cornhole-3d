@@ -164,7 +164,7 @@ export class Cornhole extends Scene {
         }
 
         // Bean Bag Trajectory
-        for (let i = 0; i < 10; i += .06) {
+        for (let i = 0; i < 2; i += .06) {
             let traj_pos = this.init_pos.plus(vel.times(i)).plus(this.acc.times(.5 * i * i));
 
             let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
