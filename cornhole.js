@@ -89,10 +89,22 @@ export class Cornhole extends Scene {
         let newt = t - this.start_time;
         this.curr_time = t;
 
+        let angle_max = .8;
+        let angle_min = -.8;
+
+        let power_max = 40;
+        let power_min = 15;
+
         if (this.ready) {
-            this.angle += this.angle_change;
-            this.power += this.power_change;
+            if (this.angle > angle_max) this.angle = angle_max;
+            else if (this.angle < angle_min) this.angle = angle_min;
+            else this.angle += this.angle_change;
+
+            if (this.power > power_max) this.power = power_max;
+            else if (this.power < power_min) this.power = power_min;
+            else this.power += this.power_change;
         }
+
         let vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
         let pos = this.init_pos.plus(vel.times(newt)).plus(this.acc.times(.5 * newt * newt));
 
