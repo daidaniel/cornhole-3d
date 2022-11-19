@@ -32,9 +32,9 @@ export class Cornhole extends Scene {
                 { ambient: .4, diffusivity: .6, color: color(1, 1, 1, .1) }),
         };
 
-        this.start_time = 0;
-        this.curr_time = 0;
         this.ready = true;
+        this.curr_t = 0;
+        this.freeze = false;
 
         this.angle = 0;
         this.angle_change = 0;
@@ -52,14 +52,15 @@ export class Cornhole extends Scene {
         this.key_triggered_button("More Power", ["ArrowUp"], () => this.power_change = .1, undefined, () => this.power_change = 0);
         this.key_triggered_button("Less Power", ["ArrowDown"], () => this.power_change = -.1, undefined, () => this.power_change = 0);
         this.new_line();
-        // this.key_triggered_button("Freeze Bag", ["Control", "1"], () => this.attached = () => this.bag);
-        this.key_triggered_button("Bag Cam", ["Control", "2"], () => this.attached = () => this.bagCam);
+        this.new_line();
         this.key_triggered_button("Throw", ["c"], () => {
             if (this.ready) {
                 this.ready = false;
-                this.start_time = this.curr_time;
+                this.curr_t = 0;
             }
         });
+        this.key_triggered_button("Freeze Bag", ["v"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
+        this.key_triggered_button("Bag Cam", ["b"], () => this.attached = () => this.bagCam);
     }
 
     display(context, program_state) {
@@ -86,16 +87,13 @@ export class Cornhole extends Scene {
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
 
         // Bean Bag
-        let newt = t - this.start_time;
-        this.curr_time = t;
-
         let angle_max = .8;
         let angle_min = -.8;
 
         let power_max = 40;
         let power_min = 15;
 
-        if (this.ready) {
+        if (this.ready) { // TODO: allow adjustment while bean bag is midair
             if (this.angle > angle_max) this.angle = angle_max;
             else if (this.angle < angle_min) this.angle = angle_min;
             else this.angle += this.angle_change;
@@ -105,8 +103,9 @@ export class Cornhole extends Scene {
             else this.power += this.power_change;
         }
 
+        if (!this.freeze) this.curr_t += dt;
         let vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
-        let pos = this.init_pos.plus(vel.times(newt)).plus(this.acc.times(.5 * newt * newt));
+        let pos = this.init_pos.plus(vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
 
         if (pos[1] < 0) this.ready = true; // TEMPORARY CONDITION
 
