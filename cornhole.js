@@ -30,6 +30,8 @@ export class Cornhole extends Scene {
                 { ambient: .4, diffusivity: .6, color: color(1, 0, 0, 1) }),
             traj: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: color(1, 1, 1, .1) }),
+            traj2: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .6, color: color(1, 0, 0, .1) }),
         };
 
         this.ready = true;
@@ -40,6 +42,11 @@ export class Cornhole extends Scene {
         this.angle_change = 0;
         this.power = 25;
         this.power_change = 0;
+
+        this.vel = vec3(0, 0, 0);
+        this.beanbag_vel = vec3(0, 0, 0);
+        this.pos = vec3(0, 0, 0);
+        this.beanbag_pos = vec3(0, 0, 0);
 
         this.init_pos = vec3(0, 5, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
@@ -57,6 +64,7 @@ export class Cornhole extends Scene {
             if (this.ready) {
                 this.ready = false;
                 this.curr_t = 0;
+                this.beanbag_vel = this.vel;
             }
         });
         this.key_triggered_button("Freeze Bag", ["v"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
@@ -77,6 +85,8 @@ export class Cornhole extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, 1, 100);
 
+        if (!this.freeze) this.curr_t += dt;
+
         // *** Lights: *** Values of vector or point lights.
         const light_position = vec4(0, 5, 5, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
@@ -87,32 +97,35 @@ export class Cornhole extends Scene {
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
 
         // Bean Bag
+        // Angle Limits
         let angle_max = .8;
         let angle_min = -.8;
+        if (this.angle > angle_max) this.angle = angle_max;
+        else if (this.angle < angle_min) this.angle = angle_min;
+        else this.angle += this.angle_change;
 
+        // Power Limits
         let power_max = 40;
         let power_min = 15;
+        if (this.power > power_max) this.power = power_max;
+        else if (this.power < power_min) this.power = power_min;
+        else this.power += this.power_change;
 
-        if (this.ready) { // TODO: allow adjustment while bean bag is midair
-            if (this.angle > angle_max) this.angle = angle_max;
-            else if (this.angle < angle_min) this.angle = angle_min;
-            else this.angle += this.angle_change;
+        // Physics
+        this.vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
+        this.pos = this.init_pos.plus(this.vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
+        this.beanbag_pos = this.init_pos.plus(this.beanbag_vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
 
-            if (this.power > power_max) this.power = power_max;
-            else if (this.power < power_min) this.power = power_min;
-            else this.power += this.power_change;
-        }
+        if (this.beanbag_pos[1] < 0) this.ready = true; // TEMPORARY
 
-        if (!this.freeze) this.curr_t += dt;
-        let vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
-        let pos = this.init_pos.plus(vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
+        let beanbag_transform = Mat4.identity().times(Mat4.translation(this.init_pos[0], this.init_pos[1], this.init_pos[2]));
+        if (!this.ready) beanbag_transform = Mat4.identity().times(Mat4.translation(this.beanbag_pos[0], this.beanbag_pos[1], this.beanbag_pos[2]));
+        beanbag_transform = beanbag_transform.times(Mat4.scale(.8, .8, .8));
 
-        if (pos[1] < 0) this.ready = true; // TEMPORARY CONDITION
-
-        let beanbag_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1], pos[2])).times(Mat4.scale(.8, .8, .8));
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
         this.bagCam = beanbag_transform;
+
 
         // **BOARD**
         let board_transform = Mat4.identity()
@@ -154,7 +167,7 @@ export class Cornhole extends Scene {
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
         // CAM STUFF
-        this.bag = pos;
+        this.bag = this.pos;
         this.bagCam = Mat4.inverse(beanbag_transform.times(Mat4.translation(0, 0, 5)));
         if (this.attached != undefined) {
             program_state.camera_inverse = this.attached().map((x, i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
@@ -166,21 +179,33 @@ export class Cornhole extends Scene {
         // let ycollision = (pos[1] <= 1.75 && pos[1] >= 1.25);
         // let zcollision = (Math.floor(pos[2]) <= target_z + 1.5 && Math.floor(pos[2]) >= target_z - 1.5);
 
-        let xcollision = (Math.floor(pos[0]) <= 2 && Math.floor(pos[0]) >= -1);
-        let ycollision = (pos[1] <= 1.4 && pos[1] >= 0.8);
-        let zcollision = (Math.floor(pos[2]) <= -15.5 && Math.floor(pos[2]) >= -17.5);
+        let xcollision = (Math.floor(this.beanbag_pos[0]) <= 2 && Math.floor(this.beanbag_pos[0]) >= -1);
+        let ycollision = (this.beanbag_pos[1] <= 1.4 && this.beanbag_pos[1] >= 0.8);
+        let zcollision = (Math.floor(this.beanbag_pos[2]) <= -15.5 && Math.floor(this.beanbag_pos[2]) >= -17.5);
 
         if (xcollision && ycollision && zcollision) {
             console.log(1);
         }
 
-        // Bean Bag Trajectory
+
+        // Bean Bag Trajectory (Aim)
         for (let i = 0; i < 2; i += .06) {
-            let traj_pos = this.init_pos.plus(vel.times(i)).plus(this.acc.times(.5 * i * i));
+            let traj_pos = this.init_pos.plus(this.vel.times(i)).plus(this.acc.times(.5 * i * i));
 
             let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
                 .times(Mat4.scale(.2, .2, .2));
             this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.traj);
+        }
+
+        // Bean Bag Trajectory (Throw)
+        if (!this.ready) {
+            for (let i = 0; i < 2; i += .06) {
+                let traj_pos = this.init_pos.plus(this.beanbag_vel.times(i)).plus(this.acc.times(.5 * i * i));
+
+                let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
+                    .times(Mat4.scale(.2, .2, .2));
+                this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.traj2);
+            }
         }
     }
 }
