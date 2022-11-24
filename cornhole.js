@@ -97,26 +97,28 @@ export class Cornhole extends Scene {
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
 
         // Bean Bag
-        // Angle Limits
-        let angle_max = .8;
-        let angle_min = -.8;
-        if (this.angle > angle_max) this.angle = angle_max;
-        else if (this.angle < angle_min) this.angle = angle_min;
-        else this.angle += this.angle_change;
+        if (this.ready) {
+            // Angle Limits
+            let angle_max = .8;
+            let angle_min = -.8;
+            if (this.angle > angle_max) this.angle = angle_max;
+            else if (this.angle < angle_min) this.angle = angle_min;
+            else this.angle += this.angle_change;
 
-        // Power Limits
-        let power_max = 40;
-        let power_min = 15;
-        if (this.power > power_max) this.power = power_max;
-        else if (this.power < power_min) this.power = power_min;
-        else this.power += this.power_change;
+            // Power Limits
+            let power_max = 40;
+            let power_min = 15;
+            if (this.power > power_max) this.power = power_max;
+            else if (this.power < power_min) this.power = power_min;
+            else this.power += this.power_change;
+        }
 
         // Physics
         this.vel = vec3(this.power * Math.sin(this.angle), this.power - 20, -1 * this.power * Math.cos(this.angle));
         this.pos = this.init_pos.plus(this.vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
         this.beanbag_pos = this.init_pos.plus(this.beanbag_vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
 
-        if (this.beanbag_pos[1] < 0) this.ready = true; // TEMPORARY
+        if (this.beanbag_pos[1] < -8) this.ready = true; // TEMPORARY
 
         let beanbag_transform = Mat4.identity().times(Mat4.translation(this.init_pos[0], this.init_pos[1], this.init_pos[2]));
         if (!this.ready) beanbag_transform = Mat4.identity().times(Mat4.translation(this.beanbag_pos[0], this.beanbag_pos[1], this.beanbag_pos[2]));
@@ -195,17 +197,6 @@ export class Cornhole extends Scene {
             let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
                 .times(Mat4.scale(.2, .2, .2));
             this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.traj);
-        }
-
-        // Bean Bag Trajectory (Throw)
-        if (!this.ready) {
-            for (let i = 0; i < 2; i += .06) {
-                let traj_pos = this.init_pos.plus(this.beanbag_vel.times(i)).plus(this.acc.times(.5 * i * i));
-
-                let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
-                    .times(Mat4.scale(.2, .2, .2));
-                this.shapes.sphere.draw(context, program_state, traj_transform, this.materials.traj2);
-            }
         }
     }
 }
