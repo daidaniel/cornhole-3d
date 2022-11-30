@@ -40,7 +40,7 @@ export class Cornhole extends Scene {
 
         this.angle = 0;
         this.angle_change = 0;
-        this.power = 25;
+        this.power = 28;
         this.power_change = 0;
 
         this.vel = vec3(0, 0, 0);
@@ -79,7 +79,7 @@ export class Cornhole extends Scene {
         if (!context.scratchpad.controls) {
             this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -7, -10)).times(Mat4.rotation(Math.PI / 10, 1, 0, 0)));
+            program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -8, -14)).times(Mat4.rotation(.45, 1, 0, 0)));
         }
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         program_state.projection_transform = Mat4.perspective(
@@ -91,23 +91,28 @@ export class Cornhole extends Scene {
         const light_position = vec4(0, 5, 5, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
 
+        // Sky
+        let sky_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, 60, 40));
+        let sky_color = color(.4, .7, 1, 1);
+        this.shapes.cube.draw(context, program_state, sky_transform, this.materials.plastic.override({ color: sky_color }));
+
         // Floor
-        let floor_transform = Mat4.identity().times(Mat4.scale(100, .1, 100));
+        let floor_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, .1, 40));
         let floor_color = color(.4, .8, .4, 1);
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
 
         // Bean Bag
         if (this.ready) {
             // Angle Limits
-            let angle_max = .8;
-            let angle_min = -.8;
+            let angle_max = .73;
+            let angle_min = -angle_max;
             if (this.angle > angle_max) this.angle = angle_max;
             else if (this.angle < angle_min) this.angle = angle_min;
             else this.angle += this.angle_change;
 
             // Power Limits
-            let power_max = 40;
-            let power_min = 15;
+            let power_max = 38;
+            let power_min = 18;
             if (this.power > power_max) this.power = power_max;
             else if (this.power < power_min) this.power = power_min;
             else this.power += this.power_change;
@@ -191,7 +196,7 @@ export class Cornhole extends Scene {
 
 
         // Bean Bag Trajectory (Aim)
-        for (let i = 0; i < 2; i += .06) {
+        for (let i = 0; i < 1.4; i += .05) {
             let traj_pos = this.init_pos.plus(this.vel.times(i)).plus(this.acc.times(.5 * i * i));
 
             let traj_transform = Mat4.identity().times(Mat4.translation(traj_pos[0], traj_pos[1], traj_pos[2]))
