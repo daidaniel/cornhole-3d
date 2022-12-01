@@ -51,6 +51,18 @@ export class Cornhole extends Scene {
         this.init_pos = vec3(0, 5, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
 
+<<<<<<< Updated upstream
+=======
+        this.tree_x_pos = [-40, -30, -20, -10, 0, 10, 20, 30, 40];
+        this.tree_z_pos = [];
+        this.tree_scale = [];
+        for (let i = 0; i < this.tree_x_pos.length; i++) {
+            this.tree_x_pos[i] += Math.random() * 6 - 3;
+            this.tree_z_pos.push(Math.random() * 10 - 65);
+            this.tree_scale.push(Math.random() * .7 + 1.3);
+        }
+
+>>>>>>> Stashed changes
         this.random_loc = 0;
         this.z_value = 0;
         this.angle_v = 0;
@@ -80,32 +92,50 @@ export class Cornhole extends Scene {
         this.key_triggered_button("Random Target", ["r"], () => {
             this.randomTarget()
         });
+<<<<<<< Updated upstream
         this.key_triggered_button("Start", ["s"], () => {
             this.randomTarget()
         });
+=======
+>>>>>>> Stashed changes
         this.key_triggered_button("Freeze Bag", ["v"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
         this.key_triggered_button("Bag Cam", ["b"], () => this.attached = () => this.bagCam);
     }
 
     randomTarget(){
+<<<<<<< Updated upstream
         this.random_loc = Math.floor(Math.random() * (35 - (-35) + 1) + (-35));
+=======
+        this.random_loc = Math.floor(Math.random() * (15 - (-15) + 1) + (-15));
+>>>>>>> Stashed changes
         this.z_value = Math.floor(Math.random() * ((-35) - (-15) + 1) + (-15));
         if (this.random_loc < 0) {
             this.angle_v = 1.5 + Math.abs(this.random_loc) * .02857143
         } else {
             this.angle_v = 1.5 - Math.abs(this.random_loc) * .02857143
         }
+<<<<<<< Updated upstream
         if (this.random_loc == 35 || this.random_loc == 14) {
             this.z_value = -(this.random_loc) - 1;
         } else if(this.random_loc == -35 || this.random_loc == -14) {
+=======
+        if (this.random_loc == 20 || this.random_loc == 14) {
+            this.z_value = -(this.random_loc) - 1;
+        } else if(this.random_loc == 20 || this.random_loc == -14) {
+>>>>>>> Stashed changes
             this.z_value = this.random_loc + 1;
         }
         this.random_locT = this.random_loc;
         this.z_valueT = this.z_value;
         if (this.random_locT < -1) {
             this.z_valueT -= 1.75
+<<<<<<< Updated upstream
             this.rot_y = .55 - Math.abs(this.random_locT) * .01549296
             this.rot_x = -1.9 - Math.abs(this.random_locT) * .05070423
+=======
+            //this.rot_y = .55 - Math.abs(this.random_locT) * .01549296
+            //this.rot_x = -1.9 - Math.abs(this.random_locT) * .05070423
+>>>>>>> Stashed changes
             this.angle_t = 1.4 - Math.abs(this.random_locT) * .03943662
         } else {
             this.random_locT += 1.5;
@@ -116,6 +146,20 @@ export class Cornhole extends Scene {
         if (this.z_value > 13.5){
             this.rot_y = -.55 + Math.abs(this.random_locT) * .01486486
         }
+<<<<<<< Updated upstream
+=======
+    }
+
+    generate_tree(context, program_state, pos, scale) {
+        let leaves_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1] + scale[1] * 3, pos[2]))
+            .times(Mat4.scale(scale[0], scale[1], scale[2]));
+        this.shapes.sphere.draw(context, program_state, leaves_transform, this.materials.leaves);
+
+        let trunk_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1] + scale[1], pos[2]))
+            .times(Mat4.scale(scale[0] / 3, scale[1] * 3, scale[2] / 3))
+            .times(Mat4.rotation(Math.PI / 2, 1, 0, 0));
+        this.shapes.cylinder.draw(context, program_state, trunk_transform, this.materials.trunk);
+>>>>>>> Stashed changes
     }
 
     display(context, program_state) {
@@ -186,6 +230,15 @@ export class Cornhole extends Scene {
         let cornhole_x = 10 * Math.sin(t) + 14.6;
         let cornhole_z = 10 * Math.sin(-1 * t) - 16;
         //Finding Board Position
+<<<<<<< Updated upstream
+=======
+        board_transform = board_transform
+            .times(Mat4.translation(this.random_loc, 1, this.z_value))
+            .times(Mat4.rotation(1.56, 0, 1, 0))
+            .times(Mat4.rotation(1.8, 0, 0, 1))
+            .times(Mat4.translation(-1.3, 1, 0))
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+>>>>>>> Stashed changes
 
         //RIGHT | MAX RIGHT: X:35 Z:-35 | MIN RIGHT: X:13 Z:-14
         //LEFT | MAX LEFT: X:-35 Z:-35 | MIN LEFT: X:-13 Z:-14
@@ -219,6 +272,10 @@ export class Cornhole extends Scene {
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood) // BOTTOM RIGHT BLOCK
 
 
+        if(this.beanbag_pos[1] <= .5 && this.beanbag_pos[1] >= 0.1) {
+            this.randomTarget();
+        }
+
         //TARGET LOCATION
         let target_transform = Mat4.identity()
 
@@ -226,8 +283,13 @@ export class Cornhole extends Scene {
             // .times(Mat4.rotation(1.4, -1.9, this.rot_y, 0));
 
         target_transform = target_transform
+<<<<<<< Updated upstream
             .times(Mat4.translation(this.random_locT, 1.3, this.z_valueT))
             .times(Mat4.rotation(1.4, -1.9, this.rot_y, 0));
+=======
+            .times(Mat4.translation(this.random_loc + 1, 1.1, this.z_value - 1.5))
+            .times(Mat4.rotation(-1.8, -.1, -0, 0));
+>>>>>>> Stashed changes
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
         let target_x = 10 * Math.sin(t) + 17;
