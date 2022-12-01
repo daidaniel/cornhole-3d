@@ -85,8 +85,12 @@ export class Cornhole extends Scene {
         this.z_valueT = 0;
         this.rot_x = 0;
         this.rot_y = 0;
-        this.coc = 0; //center of circle
         this.angle_t = 0;
+        this.target_loc = 0;
+        this.TLcorner = 0;
+        this.TRcorner = 0;
+        this.BLcorner = 0;
+        this.BRcorner = 0;
     }
 
     make_control_panel() {
@@ -236,32 +240,38 @@ export class Cornhole extends Scene {
             .times(Mat4.rotation(1.56, 0, 1, 0))
             .times(Mat4.rotation(1.8, 0, 0, 1))
             .times(Mat4.translation(-1.3, 1, 0))
-        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
-
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood) // BOTTOM LEFT BLOCK
+        this.BLcorner = board_transform;
         //Adding extra cubes to finish board
         board_transform = board_transform
             .times(Mat4.translation(0, -2, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
         board_transform = board_transform
             .times(Mat4.translation(0, -2, 0))
-        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood) // TOP LEFT BLOCK
+        this.TLcorner = board_transform;
         board_transform = board_transform
             .times(Mat4.translation(0, 4, 2))
-        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood) // TOP RIGHT BLOCK
+        this.TRcorner = board_transform;
         board_transform = board_transform
             .times(Mat4.translation(0, -2, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
         board_transform = board_transform
             .times(Mat4.translation(0, -2, 0))
-        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
+        this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood) // BOTTOM RIGHT BLOCK
+        this.BRcorner = board_transform;
 
         //TARGET LOCATION
         let target_transform = Mat4.identity()
         let target_x = 10 * Math.sin(t) + 17;
         let target_z = 10 * Math.sin(-1 * t) - 17
+
         target_transform = target_transform
             .times(Mat4.translation(this.random_loc + 1, 1.1, this.z_value + -1.5))
             .times(Mat4.rotation(-1.8, -0.1, -0, 0));
+
+        this.target_loc = target_transform;
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
         if(this.beanbag_pos[1] <= .5 && this.beanbag_pos[1] >= 0.1) {
