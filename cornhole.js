@@ -77,6 +77,16 @@ export class Cornhole extends Scene {
             this.tree_z_pos.push(Math.random() * 10 - 65);
             this.tree_scale.push(Math.random() * .7 + 1.3);
         }
+
+        this.random_loc = 0;
+        this.z_value = 0;
+        this.angle_v = 0;
+        this.random_locT = 0;
+        this.z_valueT = 0;
+        this.rot_x = 0;
+        this.rot_y = 0;
+        this.coc = 0; //center of circle
+        this.angle_t = 0;
     }
 
     make_control_panel() {
@@ -94,8 +104,42 @@ export class Cornhole extends Scene {
                 this.beanbag_vel = this.vel;
             }
         });
+        this.key_triggered_button("Random Target", ["r"], () => {
+            this.randomTarget()
+        });
         this.key_triggered_button("Freeze Bag", ["v"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
         this.key_triggered_button("Bag Cam", ["b"], () => this.attached = () => this.bagCam);
+    }
+
+    randomTarget(){
+        this.random_loc = Math.floor(Math.random() * (20 - (-20) + 1) + (-20));
+        this.z_value = Math.floor(Math.random() * ((-35) - (-15) + 1) + (-15));
+        if (this.random_loc < 0) {
+            this.angle_v = 1.5 + Math.abs(this.random_loc) * .02857143
+        } else {
+            this.angle_v = 1.5 - Math.abs(this.random_loc) * .02857143
+        }
+        if (this.random_loc == 15 || this.random_loc == 14) {
+            this.z_value = -(this.random_loc) - 1;
+        } else if(this.random_loc == -35 || this.random_loc == -14) {
+            this.z_value = this.random_loc + 1;
+        }
+        this.random_locT = this.random_loc;
+        this.z_valueT = this.z_value;
+        if (this.random_locT < -1) {
+            this.z_valueT -= 1.75
+            this.rot_y = .55 - Math.abs(this.random_locT) * .01549296
+            this.rot_x = -1.9 - Math.abs(this.random_locT) * .05070423
+            this.angle_t = 1.4 - Math.abs(this.random_locT) * .03943662
+        } else {
+            this.random_locT += 1.5;
+            this.rot_y = -.55 + Math.abs(this.random_locT) * .01486486
+            this.rot_x = -1.9 - Math.abs(this.random_locT) * .04864865
+            this.angle_t = 1.4 - Math.abs(this.random_locT) * .03783784
+        }
+        if (this.z_value > 13.5){
+            this.rot_y = -.55 + Math.abs(this.random_locT) * .01486486
+        }
     }
 
     generate_tree(context, program_state, pos, scale) {
@@ -115,7 +159,7 @@ export class Cornhole extends Scene {
 
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
         if (!context.scratchpad.controls) {
-            this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
+            //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
             program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -8, -14)).times(Mat4.rotation(.45, 1, 0, 0)));
         }
@@ -188,12 +232,11 @@ export class Cornhole extends Scene {
         let cornhole_z = 10 * Math.sin(-1 * t) - 16;
         //Finding Board Position
         board_transform = board_transform
-            .times(Mat4.translation(-1, 1, -15))
+            .times(Mat4.translation(this.random_loc, 1, this.z_value))
             .times(Mat4.rotation(1.56, 0, 1, 0))
             .times(Mat4.rotation(1.8, 0, 0, 1))
             .times(Mat4.translation(-1.3, 1, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
-
 
         //Adding extra cubes to finish board
         board_transform = board_transform
@@ -217,9 +260,13 @@ export class Cornhole extends Scene {
         let target_x = 10 * Math.sin(t) + 17;
         let target_z = 10 * Math.sin(-1 * t) - 17
         target_transform = target_transform
-            .times(Mat4.translation(-0.15, 1.1, -16.5))
+            .times(Mat4.translation(this.random_loc + 1, 1.1, this.z_value + -1.5))
             .times(Mat4.rotation(-1.8, -0.1, -0, 0));
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
+
+        if(this.beanbag_pos[1] <= .5 && this.beanbag_pos[1] >= 0.1) {
+            this.randomTarget();
+        }
 
         // CAM STUFF
         this.bag = this.pos;
