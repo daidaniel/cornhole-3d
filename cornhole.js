@@ -19,33 +19,36 @@ export class Cornhole extends Scene {
         this.shapes = {
             cube: new defs.Cube(),
             sphere: new defs.Subdivision_Sphere(4),
-            regular_2D_polygon: new defs.Regular_2D_Polygon(30, 30)
+            regular_2D_polygon: new defs.Regular_2D_Polygon(30, 30),
+            cylinder: new defs.Cylindrical_Tube(8, 8),
         };
 
         // *** Materials
         this.materials = {
             plastic: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: hex_color("#ffffff") }),
+            floor: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .4, specularity: 0, color: color(.6, 1, .6, 1) }),
+            hole: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .4, color: color(1, 0, 0, 1) }),
+            leaves: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .4, specularity: 0, color: color(.4, .8, .4, 1) }),
+            traj: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .4, color: color(1, 1, 1, .1) }),
+            trunk: new Material(new defs.Phong_Shader(),
+                { ambient: .4, diffusivity: .4, specularity: 0, color: color(.8, .6, .4, 1) }),
+            sky: new Material(new defs.Phong_Shader(),
+                { ambient: 1, color: color(.4, .6, .8, 1) }),
+            beanbag: new Material(new Textured_Phong(), {
+                color: hex_color("#000000"),
+                ambient: 1, specularity: 0,
+                texture: new Texture("assets/red_wool.png")
+            }),
             wood: new Material(new Textured_Phong(), {
                 color: hex_color("#000000"),
                 ambient: 1, diffusivity: 0, specularity: .2,
                 texture: new Texture("assets/oak_planks.png")
             }),
-            hole: new Material(new defs.Phong_Shader(),
-                { ambient: .4, diffusivity: .6, color: color(1, 0, 0, 1) }),
-            traj: new Material(new defs.Phong_Shader(),
-                { ambient: .4, diffusivity: .6, color: color(1, 1, 1, .1) }),
-            traj2: new Material(new defs.Phong_Shader(),
-                { ambient: .4, diffusivity: .6, color: color(1, 0, 0, .1) }),
-            beanbag: new Material(new Textured_Phong(), {
-                color: hex_color("#000000"),
-                ambient: 1, specularity: .2,
-                texture: new Texture("assets/red_wool.png")
-            }),
-            floor: new Material(new defs.Phong_Shader(),
-                { ambient: .6, diffusivity: .4, color: color(.4, .8, .4, 1) }),
-            sky: new Material(new defs.Phong_Shader(),
-                { ambient: 1, color: color(.3, .5, .7, 1) }),
         };
 
         this.ready = true;
@@ -65,6 +68,15 @@ export class Cornhole extends Scene {
 
         this.init_pos = vec3(0, 5, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
+
+        this.tree_x_pos = [-40, -30, -20, -10, 0, 10, 20, 30, 40];
+        this.tree_z_pos = [];
+        this.tree_scale = [];
+        for (let i = 0; i < this.tree_x_pos.length; i++) {
+            this.tree_x_pos[i] += Math.random() * 6 - 3;
+            this.tree_z_pos.push(Math.random() * 10 - 65);
+            this.tree_scale.push(Math.random() * .7 + 1.3);
+        }
     }
 
     make_control_panel() {
@@ -84,6 +96,17 @@ export class Cornhole extends Scene {
         });
         this.key_triggered_button("Freeze Bag", ["v"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
         this.key_triggered_button("Bag Cam", ["b"], () => this.attached = () => this.bagCam);
+    }
+
+    generate_tree(context, program_state, pos, scale) {
+        let leaves_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1] + scale[1] * 3, pos[2]))
+            .times(Mat4.scale(scale[0], scale[1], scale[2]));
+        this.shapes.sphere.draw(context, program_state, leaves_transform, this.materials.leaves);
+
+        let trunk_transform = Mat4.identity().times(Mat4.translation(pos[0], pos[1] + scale[1], pos[2]))
+            .times(Mat4.scale(scale[0] / 3, scale[1] * 3, scale[2] / 3))
+            .times(Mat4.rotation(Math.PI / 2, 1, 0, 0));
+        this.shapes.cylinder.draw(context, program_state, trunk_transform, this.materials.trunk);
     }
 
     display(context, program_state) {
@@ -113,6 +136,11 @@ export class Cornhole extends Scene {
         // Floor
         let floor_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, .1, 40));
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.floor);
+
+        // Trees
+        for (let i = 0; i < this.tree_x_pos.length; i++) {
+            this.generate_tree(context, program_state, vec3(this.tree_x_pos[i], 0, this.tree_z_pos[i]), vec3(this.tree_scale[i], this.tree_scale[i], this.tree_scale[i]));
+        }
 
         // Bean Bag
         if (this.ready) {
