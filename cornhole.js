@@ -1,8 +1,10 @@
 import { defs, tiny } from './examples/common.js';
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Matrix, Mat4, Light, Shape, Material, Scene,
+    Vector, Vector3, vec, vec3, vec4, color, hex_color, Matrix, Mat4, Light, Shape, Material, Scene, Texture,
 } = tiny;
+
+const { Cube, Axis_Arrows, Textured_Phong } = defs
 
 export class Cornhole extends Scene {
     /**
@@ -24,14 +26,26 @@ export class Cornhole extends Scene {
         this.materials = {
             plastic: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: hex_color("#ffffff") }),
-            wood: new Material(new defs.Phong_Shader(),
-                { ambient: .4, diffusivity: .6, color: hex_color("#be8c41") }),
+            wood: new Material(new Textured_Phong(), {
+                color: hex_color("#000000"),
+                ambient: 1, diffusivity: 0, specularity: .2,
+                texture: new Texture("assets/oak_planks.png")
+            }),
             hole: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: color(1, 0, 0, 1) }),
             traj: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: color(1, 1, 1, .1) }),
             traj2: new Material(new defs.Phong_Shader(),
                 { ambient: .4, diffusivity: .6, color: color(1, 0, 0, .1) }),
+            beanbag: new Material(new Textured_Phong(), {
+                color: hex_color("#000000"),
+                ambient: 1, specularity: .2,
+                texture: new Texture("assets/red_wool.png")
+            }),
+            floor: new Material(new defs.Phong_Shader(),
+                { ambient: .6, diffusivity: .4, color: color(.4, .8, .4, 1) }),
+            sky: new Material(new defs.Phong_Shader(),
+                { ambient: 1, color: color(.3, .5, .7, 1) }),
         };
 
         this.ready = true;
@@ -47,6 +61,7 @@ export class Cornhole extends Scene {
         this.beanbag_vel = vec3(0, 0, 0);
         this.pos = vec3(0, 0, 0);
         this.beanbag_pos = vec3(0, 0, 0);
+        this.beanbag_rot = 0;
 
         this.init_pos = vec3(0, 5, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
@@ -88,18 +103,16 @@ export class Cornhole extends Scene {
         if (!this.freeze) this.curr_t += dt;
 
         // *** Lights: *** Values of vector or point lights.
-        const light_position = vec4(0, 5, 5, 1);
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
+        const light_position = vec4(0, 30, 0, 1);
+        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 10000)];
 
         // Sky
         let sky_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, 60, 40));
-        let sky_color = color(.4, .7, 1, 1);
-        this.shapes.cube.draw(context, program_state, sky_transform, this.materials.plastic.override({ color: sky_color }));
+        this.shapes.cube.draw(context, program_state, sky_transform, this.materials.sky);
 
         // Floor
         let floor_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, .1, 40));
-        let floor_color = color(.4, .8, .4, 1);
-        this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
+        this.shapes.cube.draw(context, program_state, floor_transform, this.materials.floor);
 
         // Bean Bag
         if (this.ready) {
@@ -123,14 +136,21 @@ export class Cornhole extends Scene {
         this.pos = this.init_pos.plus(this.vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
         this.beanbag_pos = this.init_pos.plus(this.beanbag_vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
 
-        if (this.beanbag_pos[1] < -8) this.ready = true; // TEMPORARY
+        if (this.beanbag_pos[1] < -8) {
+            this.ready = true; // TEMPORARY
+            this.beanbag_rot = 0;
+        }
 
         let beanbag_transform = Mat4.identity().times(Mat4.translation(this.init_pos[0], this.init_pos[1], this.init_pos[2]));
-        if (!this.ready) beanbag_transform = Mat4.identity().times(Mat4.translation(this.beanbag_pos[0], this.beanbag_pos[1], this.beanbag_pos[2]));
-        beanbag_transform = beanbag_transform.times(Mat4.scale(.8, .8, .8));
+        if (!this.ready) {
+            beanbag_transform = Mat4.identity().times(Mat4.translation(this.beanbag_pos[0], this.beanbag_pos[1], this.beanbag_pos[2]));
+            this.beanbag_rot += .05;
+        }
+        beanbag_transform = beanbag_transform.times(Mat4.rotation(this.beanbag_rot, 1, 0, 0));
+        beanbag_transform = beanbag_transform.times(Mat4.scale(.8, .3, .8));
 
         let beanbag_color = color(.8, .4, .4, 1);
-        this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.plastic.override({ color: beanbag_color }));
+        this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.beanbag);
         this.bagCam = beanbag_transform;
 
 
