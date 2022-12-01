@@ -59,6 +59,7 @@ export class Cornhole extends Scene {
         this.rot_x = 0;
         this.rot_y = 0;
         this.coc = 0; //center of circle
+        this.angle_t = 0;
     }
 
     make_control_panel() {
@@ -101,15 +102,19 @@ export class Cornhole extends Scene {
         }
         this.random_locT = this.random_loc;
         this.z_valueT = this.z_value;
-        if (this.random_locT < 0) {
-            this.random_locT;
-            this.z_valueT -= 1.5
+        if (this.random_locT < -1) {
+            this.z_valueT -= 1.75
             this.rot_y = .55 - Math.abs(this.random_locT) * .01549296
             this.rot_x = -1.9 - Math.abs(this.random_locT) * .05070423
+            this.angle_t = 1.4 - Math.abs(this.random_locT) * .03943662
         } else {
             this.random_locT += 1.5;
             this.rot_y = -.55 + Math.abs(this.random_locT) * .01486486
             this.rot_x = -1.9 - Math.abs(this.random_locT) * .04864865
+            this.angle_t = 1.4 - Math.abs(this.random_locT) * .03783784
+        }
+        if (this.z_value > 13.5){
+            this.rot_y = -.55 + Math.abs(this.random_locT) * .01486486
         }
     }
 
@@ -121,7 +126,7 @@ export class Cornhole extends Scene {
         if (!context.scratchpad.controls) {
             //this.children.push(context.scratchpad.controls = new defs.Movement_Controls());
             // Define the global camera and projection matrices, which are stored in program_state.
-            program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -12, -25)).times(Mat4.rotation(Math.PI / 10, 1, 0, 0)));
+            program_state.set_camera(Mat4.identity().times(Mat4.translation(0, -12, -35)).times(Mat4.rotation(Math.PI / 10, 1, 0, 0)));
         }
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         program_state.projection_transform = Mat4.perspective(
