@@ -50,9 +50,22 @@ export class Cornhole extends Scene {
 
         this.init_pos = vec3(0, 5, 0);
         this.acc = vec3(0, -32.17, 0); // ft/s^2
+
+        this.score = 0;
+        this.time = 60;
+        this.placeholder = -60;
     }
 
     make_control_panel() {
+        this.live_string(box => {
+            box.textContent = "Score: " + this.score + " points";
+        });
+        this.new_line();
+        this.live_string(box => {
+            box.textContent = "Time: " + this.time + " seconds";
+        });
+        this.new_line();
+        this.new_line();
         this.key_triggered_button("Aim Left", ["ArrowLeft"], () => this.angle_change = -.005, undefined, () => this.angle_change = 0);
         this.key_triggered_button("Aim Right", ["ArrowRight"], () => this.angle_change = .005, undefined, () => this.angle_change = 0);
         this.new_line();
@@ -61,14 +74,20 @@ export class Cornhole extends Scene {
         this.new_line();
         this.new_line();
         this.key_triggered_button("Throw", ["c"], () => {
-            if (this.ready) {
+            if (this.ready && this.time > 0) {
                 this.ready = false;
                 this.curr_t = 0;
                 this.beanbag_vel = this.vel;
+                this.point = true;
             }
         });
         this.key_triggered_button("Freeze Bag", ["v"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
         this.key_triggered_button("Bag Cam", ["b"], () => this.attached = () => this.bagCam);
+        this.key_triggered_button("Start Timer & Reset Score", ["m"], () => {
+            this.score = 0;
+            this.time = 60;
+            this.placeholder = 0;
+        });
     }
 
     display(context, program_state) {
@@ -95,6 +114,17 @@ export class Cornhole extends Scene {
         let floor_transform = Mat4.identity().times(Mat4.scale(100, .1, 100));
         let floor_color = color(.4, .8, .4, 1);
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.plastic.override({ color: floor_color }));
+
+        // Time Pass
+        if (this.placeholder == 0) {
+            this.placeholder = t;
+        }
+        if (this.time > 0) {
+            this.time = 60 - Math.floor(t - this.placeholder);
+        }
+        else {
+            this.placeholder = t;
+        }
 
         // Bean Bag
         if (this.ready) {
@@ -161,10 +191,8 @@ export class Cornhole extends Scene {
 
         //TARGET LOCATION
         let target_transform = Mat4.identity()
-        let target_x = 10 * Math.sin(t) + 17;
-        let target_z = 10 * Math.sin(-1 * t) - 17
         target_transform = target_transform
-            .times(Mat4.translation(-0.15, 1.1, -16.5))
+            .times(Mat4.translation(0, 1.1, -16.5))
             .times(Mat4.rotation(-1.8, -0.1, -0, 0));
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
@@ -175,18 +203,13 @@ export class Cornhole extends Scene {
             program_state.camera_inverse = this.attached().map((x, i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
         }
 
-
-        // Scoring
-        // let xcollision = (Math.floor(pos[0]) <= target_x + 1.5 && Math.floor(pos[0]) >= target_x - 1.5);
-        // let ycollision = (pos[1] <= 1.75 && pos[1] >= 1.25);
-        // let zcollision = (Math.floor(pos[2]) <= target_z + 1.5 && Math.floor(pos[2]) >= target_z - 1.5);
-
-        let xcollision = (Math.floor(this.beanbag_pos[0]) <= 2 && Math.floor(this.beanbag_pos[0]) >= -1);
         let ycollision = (this.beanbag_pos[1] <= 1.4 && this.beanbag_pos[1] >= 0.8);
-        let zcollision = (Math.floor(this.beanbag_pos[2]) <= -15.5 && Math.floor(this.beanbag_pos[2]) >= -17.5);
+        let collision = Math.abs(Math.sqrt(this.beanbag_pos[0] ** 2 + (this.beanbag_pos[2] + 16.5) ** 2))
 
-        if (xcollision && ycollision && zcollision) {
-            console.log(1);
+        if ((collision <= 1) && ycollision && this.point) {
+            this.score += 3;
+            console.log(this.score);
+            this.point = false;
         }
 
 
