@@ -315,9 +315,9 @@ export class Cornhole extends Scene {
             this.beanbag_rot = 0;
         }
 
-        let boardycollision = (this.beanbag_pos[1] <= 2 && this.beanbag_pos[1] >= 1);
-        let boardcollision = (this.beanbag_pos[0] <= this.target_loc[0] + 3 && this.beanbag_pos[0] >= this.target_loc[0] - 3
-            && this.beanbag_pos[2] <= this.target_loc[2] + 5 && this.beanbag_pos[2] >= this.target_loc[2] - 5);
+        let boardycollision = (this.beanbag_pos[1] <= this.TLcorner[1][3] && this.beanbag_pos[1] >= this.BLcorner[1][3]);
+        let boardcollision = (this.beanbag_pos[0] <= this.TRcorner[0][3] && this.beanbag_pos[0] >= this.TLcorner[0][3]
+            && this.beanbag_pos[2] <= this.BLcorner[2][3] && this.beanbag_pos[2] >= this.TLcorner[2][3]);
 
         if (boardcollision && boardycollision && this.point) {
             this.score += 1;
