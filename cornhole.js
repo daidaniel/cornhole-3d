@@ -133,7 +133,7 @@ export class Cornhole extends Scene {
     }
 
     randomTarget(){
-        this.random_loc = Math.floor(Math.random() * (20 - (-20) + 1) + (-20));
+        this.random_loc = Math.floor(Math.random() * (12 - (-12) + 1) + (-12));
         this.z_value = Math.floor(Math.random() * ((-35) - (-15) + 1) + (-15));
         if (this.random_loc < 0) {
             this.angle_v = 1.5 + Math.abs(this.random_loc) * .02857143
