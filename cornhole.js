@@ -240,11 +240,6 @@ export class Cornhole extends Scene {
         this.pos = this.init_pos.plus(this.vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
         this.beanbag_pos = this.init_pos.plus(this.beanbag_vel.times(this.curr_t)).plus(this.acc.times(.5 * this.curr_t * this.curr_t));
 
-        if (this.beanbag_pos[1] < -8) {
-            this.ready = true; // TEMPORARY
-            this.beanbag_rot = 0;
-        }
-
         let beanbag_transform = Mat4.identity().times(Mat4.translation(this.init_pos[0], this.init_pos[1], this.init_pos[2]));
         if (!this.ready) {
             beanbag_transform = Mat4.identity().times(Mat4.translation(this.beanbag_pos[0], this.beanbag_pos[1], this.beanbag_pos[2]));
@@ -312,6 +307,8 @@ export class Cornhole extends Scene {
             this.score += 3;
             this.point = false;
             this.randomTarget();
+            this.ready = true;
+            this.beanbag_rot = 0;
         }
 
         let boardycollision = (this.beanbag_pos[1] <= this.TLcorner[1][3] && this.beanbag_pos[1] >= this.BLcorner[1][3]);
@@ -322,6 +319,8 @@ export class Cornhole extends Scene {
             this.score += 1;
             this.point = false;
             this.randomTarget();
+            this.ready = true;
+            this.beanbag_rot = 0;
         }
 
         // Bean Bag Trajectory (Aim)
