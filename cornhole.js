@@ -100,6 +100,10 @@ export class Cornhole extends Scene {
 
     make_control_panel() {
         this.live_string(box => {
+            box.textContent = "Press r to Start/Restart the game";
+        });
+        this.new_line()
+        this.live_string(box => {
             box.textContent = "Score: " + this.score + " points";
         });
         this.new_line();
@@ -127,9 +131,7 @@ export class Cornhole extends Scene {
                 this.point = true;
             }
         });
-        this.key_triggered_button("Freeze Bag", ["f"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
-        this.key_triggered_button("Bag Cam", ["b"], () => this.attached = () => this.bagCam);
-        this.key_triggered_button("Start Timer & Reset Score", ["s"], () => {
+        this.key_triggered_button("Start Timer & Reset Score", ["r"], () => {
             this.score = 0;
             this.time = 60;
             this.placeholder = 0;
