@@ -72,6 +72,8 @@ export class Cornhole extends Scene {
         this.score = 0;
         this.time = 60;
         this.placeholder = -60;
+        this.highscore = 0;
+
         this.tree_x_pos = [-40, -30, -20, -10, 0, 10, 20, 30, 40];
         this.tree_z_pos = [];
         this.tree_scale = [];
@@ -105,6 +107,10 @@ export class Cornhole extends Scene {
             box.textContent = "Time: " + this.time + " seconds";
         });
         this.new_line();
+        this.live_string(box => {
+            box.textContent = "High Score: " + this.highscore + " points";
+        });
+        this.new_line();
         this.new_line();
         this.key_triggered_button("Aim Left", ["ArrowLeft"], () => this.angle_change = -.005, undefined, () => this.angle_change = 0);
         this.key_triggered_button("Aim Right", ["ArrowRight"], () => this.angle_change = .005, undefined, () => this.angle_change = 0);
@@ -113,7 +119,7 @@ export class Cornhole extends Scene {
         this.key_triggered_button("Less Power", ["ArrowDown"], () => this.power_change = -.1, undefined, () => this.power_change = 0);
         this.new_line();
         this.new_line();
-        this.key_triggered_button("Throw", ["c"], () => {
+        this.key_triggered_button("Throw", ["t"], () => {
             if (this.ready && this.time > 0) {
                 this.ready = false;
                 this.curr_t = 0;
@@ -121,14 +127,14 @@ export class Cornhole extends Scene {
                 this.point = true;
             }
         });
-        this.key_triggered_button("Freeze Bag", ["v"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
+        this.key_triggered_button("Freeze Bag", ["f"], () => { if (!this.ready) { this.freeze = !this.freeze; } });
         this.key_triggered_button("Bag Cam", ["b"], () => this.attached = () => this.bagCam);
-        this.key_triggered_button("Start Timer & Reset Score", ["m"], () => {
+        this.key_triggered_button("Start Timer & Reset Score", ["s"], () => {
             this.score = 0;
             this.time = 60;
             this.placeholder = 0;
             this.randomTarget();
-            console.log(this.BLcorner, this.BRcorner, this.TRcorner, this.TLcorner)
+            console.log(this.target_loc)
         });
     }
 
@@ -212,10 +218,16 @@ export class Cornhole extends Scene {
         if (this.placeholder == 0)
             this.placeholder = t;
 
-        if (this.time > 0)
+        if (this.time > 0) {
             this.time = 60 - Math.floor(t - this.placeholder);
-        else
+        }
+        else {
             this.placeholder = t;
+            if (this.score > this.highscore) {
+                this.highscore = this.score;
+            }
+        }
+            
 
 
         /* -------------------------------- Bean Bag -------------------------------- */
@@ -321,11 +333,11 @@ export class Cornhole extends Scene {
             this.beanbag_rot = 0;
         }
 
-        let boardycollision = (this.beanbag_pos[1] <= this.TLcorner[1][3] && this.beanbag_pos[1] >= this.BLcorner[1][3]);
-        let boardcollision = (this.beanbag_pos[0] <= this.TRcorner[0][3] && this.beanbag_pos[0] >= this.TLcorner[0][3]
-            && this.beanbag_pos[2] <= this.BLcorner[2][3] && this.beanbag_pos[2] >= this.TLcorner[2][3]);
+        let boardycollision = (this.beanbag_pos[1] <= 1.1 && this.beanbag_pos[1] >= 0);
+        let boardcollision = (this.beanbag_pos[0] <= this.target_loc[0] + 2 && this.beanbag_pos[0] >= this.target_loc[0] - 2
+            && this.beanbag_pos[2] <= this.target_loc[2] + 4 && this.beanbag_pos[2] >= this.target_loc[2] - 4);
 
-        if (boardcollision && boardycollision && this.point) {
+        if (boardcollision && (collision >= 1) && boardycollision && this.point) {
             this.score += 1;
             this.point = false;
             this.randomTarget();
