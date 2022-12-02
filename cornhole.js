@@ -132,7 +132,7 @@ export class Cornhole extends Scene {
         });
     }
 
-    randomTarget(){
+    randomTarget() {
         this.random_loc = Math.floor(Math.random() * (12 - (-12) + 1) + (-12));
         this.z_value = Math.floor(Math.random() * ((-35) - (-15) + 1) + (-15));
         if (this.random_loc < 0) {
@@ -142,7 +142,7 @@ export class Cornhole extends Scene {
         }
         if (this.random_loc == 15 || this.random_loc == 14) {
             this.z_value = -(this.random_loc) - 1;
-        } else if(this.random_loc == -35 || this.random_loc == -14) {
+        } else if (this.random_loc == -35 || this.random_loc == -14) {
             this.z_value = this.random_loc + 1;
         }
         this.random_locT = this.random_loc;
@@ -158,7 +158,7 @@ export class Cornhole extends Scene {
             this.rot_x = -1.9 - Math.abs(this.random_locT) * .04864865
             this.angle_t = 1.4 - Math.abs(this.random_locT) * .03783784
         }
-        if (this.z_value > 13.5){
+        if (this.z_value > 13.5) {
             this.rot_y = -.55 + Math.abs(this.random_locT) * .01486486
         }
     }
@@ -190,35 +190,35 @@ export class Cornhole extends Scene {
 
         if (!this.freeze) this.curr_t += dt;
 
-        // *** Lights: *** Values of vector or point lights.
+
+        /* ------------------------------- Environment ------------------------------ */
+        // Light
         const light_position = vec4(0, 30, 0, 1);
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 10000)];
-
-        // Sky
-        let sky_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, 60, 40));
-        this.shapes.cube.draw(context, program_state, sky_transform, this.materials.sky);
 
         // Floor
         let floor_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, .1, 40));
         this.shapes.cube.draw(context, program_state, floor_transform, this.materials.floor);
 
+        // Sky
+        let sky_transform = Mat4.identity().times(Mat4.translation(0, 0, -30)).times(Mat4.scale(60, 60, 40));
+        this.shapes.cube.draw(context, program_state, sky_transform, this.materials.sky);
+
         // Trees
-        for (let i = 0; i < this.tree_x_pos.length; i++) {
+        for (let i = 0; i < this.tree_x_pos.length; i++)
             this.generate_tree(context, program_state, vec3(this.tree_x_pos[i], 0, this.tree_z_pos[i]), vec3(this.tree_scale[i], this.tree_scale[i], this.tree_scale[i]));
-        }
 
         // Time Pass
-        if (this.placeholder == 0) {
+        if (this.placeholder == 0)
             this.placeholder = t;
-        }
-        if (this.time > 0) {
-            this.time = 60 - Math.floor(t - this.placeholder);
-        }
-        else {
-            this.placeholder = t;
-        }
 
-        // Bean Bag
+        if (this.time > 0)
+            this.time = 60 - Math.floor(t - this.placeholder);
+        else
+            this.placeholder = t;
+
+
+        /* -------------------------------- Bean Bag -------------------------------- */
         if (this.ready) {
             // Angle Limits
             let angle_max = .73;
@@ -245,6 +245,7 @@ export class Cornhole extends Scene {
             this.beanbag_rot = 0;
         }
 
+        // Transform
         let beanbag_transform = Mat4.identity().times(Mat4.translation(this.init_pos[0], this.init_pos[1], this.init_pos[2]));
         if (!this.ready) {
             beanbag_transform = Mat4.identity().times(Mat4.translation(this.beanbag_pos[0], this.beanbag_pos[1], this.beanbag_pos[2]));
@@ -253,14 +254,16 @@ export class Cornhole extends Scene {
         beanbag_transform = beanbag_transform.times(Mat4.rotation(this.beanbag_rot, 1, 0, 0));
         beanbag_transform = beanbag_transform.times(Mat4.scale(.8, .3, .8));
 
+        // Draw
         let beanbag_color = color(.8, .4, .4, 1);
         this.shapes.sphere.draw(context, program_state, beanbag_transform, this.materials.beanbag);
         this.bagCam = beanbag_transform;
 
 
-        // **BOARD**
+        /* ---------------------------------- Board --------------------------------- */
         let board_transform = Mat4.identity()
-        //Finding Board Position
+
+        // Position
         board_transform = board_transform
             .times(Mat4.translation(this.random_loc, 1, this.z_value))
             .times(Mat4.rotation(1.56, 0, 1, 0))
@@ -268,7 +271,8 @@ export class Cornhole extends Scene {
             .times(Mat4.translation(-1.3, 1, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood) // BOTTOM LEFT BLOCK
         this.BLcorner = board_transform;
-        //Adding extra cubes to finish board
+
+        // Extra Cubes To Finish Board
         board_transform = board_transform
             .times(Mat4.translation(0, -2, 0))
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood)
@@ -288,7 +292,7 @@ export class Cornhole extends Scene {
         this.shapes.cube.draw(context, program_state, board_transform, this.materials.wood) // BOTTOM RIGHT BLOCK
         this.BRcorner = board_transform;
 
-        //TARGET LOCATION
+        // Target Location
         let target_transform = Mat4.identity()
 
         target_transform = target_transform
@@ -298,13 +302,14 @@ export class Cornhole extends Scene {
         this.target_loc = [this.random_loc + 1, 1.1, this.z_value + -1.5];
         this.shapes.regular_2D_polygon.draw(context, program_state, target_transform, this.materials.hole)
 
-        // CAM STUFF
+        // Camera
         this.bag = this.pos;
         this.bagCam = Mat4.inverse(beanbag_transform.times(Mat4.translation(0, 0, 5)));
-        if (this.attached != undefined) {
+        if (this.attached != undefined)
             program_state.camera_inverse = this.attached().map((x, i) => Vector.from(program_state.camera_inverse[i]).mix(x, 0.1));
-        }
 
+
+        /* --------------------------- Collision Detection -------------------------- */
         let ycollision = (this.beanbag_pos[1] <= 1.4 && this.beanbag_pos[1] >= 0.8);
         let collision = Math.abs(Math.sqrt((this.beanbag_pos[0] - this.target_loc[0]) ** 2 + (this.beanbag_pos[2] - this.target_loc[2]) ** 2))
 
@@ -317,8 +322,8 @@ export class Cornhole extends Scene {
         }
 
         let boardycollision = (this.beanbag_pos[1] <= this.TLcorner[1][3] && this.beanbag_pos[1] >= this.BLcorner[1][3]);
-        let boardcollision = (this.beanbag_pos[0] <= this.TRcorner[0][3] && this.beanbag_pos[0] >= this.TLcorner[0][3] 
-                            && this.beanbag_pos[2] <= this.BLcorner[2][3] && this.beanbag_pos[2] >= this.TLcorner[2][3]);
+        let boardcollision = (this.beanbag_pos[0] <= this.TRcorner[0][3] && this.beanbag_pos[0] >= this.TLcorner[0][3]
+            && this.beanbag_pos[2] <= this.BLcorner[2][3] && this.beanbag_pos[2] >= this.TLcorner[2][3]);
 
         if (boardcollision && boardycollision && this.point) {
             this.score += 1;
@@ -328,7 +333,7 @@ export class Cornhole extends Scene {
             this.beanbag_rot = 0;
         }
 
-        // Bean Bag Trajectory (Aim)
+        /* ------------------------------- Trajectory ------------------------------- */
         for (let i = 0; i < 1.4; i += .05) {
             let traj_pos = this.init_pos.plus(this.vel.times(i)).plus(this.acc.times(.5 * i * i));
 
